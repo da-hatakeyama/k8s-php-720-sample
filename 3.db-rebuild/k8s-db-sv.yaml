@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql
+  labels:
+    app: postgresql
+spec:
+  ports:
+  - port: 5432
+    name: postgresql
+  clusterIP: None
+  selector:
+    app: postgresql
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql
+  labels:
+    app: postgresql
+spec:
+  serviceName: "postgresql"
+  selector:
+    matchLabels:
+      app: postgresql
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgresql
+    spec:
+      terminationGracePeriodSeconds: 60
+      securityContext:
+       fsGroup: 1000
+      containers:
+      - name: postgresql
+        image: php-gke-postgres:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5432
+          name: postgresql
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: php-apache-psql-secret
+              key: database_user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: php-apache-psql-secret
+              key: database_password
+        - name: PGDATA
+          value: /var/lib/postgresql/data2
+        volumeMounts:
+        - name: php-apache-psql-data
+          mountPath: /mnt/php-apache-psql-data
+          readOnly: false
+        command:
+        - sh
+        - "-c"
+        - |
+          /usr/local/bin/creat-volume.sh
+        securityContext:
+          privileged: true
+      volumes:
+      - name: php-apache-psql-data
+        persistentVolumeClaim:
+          claimName: php-apache-psql-pvc
