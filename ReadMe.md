@@ -1,4 +1,23 @@
 ＜docker for windows kubernetes使用準備＞
+
+### この設定ファイルを作成したブログ記事
+
+https://www.d-a.co.jp/staff/index.php?itemid=11051
+
+### 前提条件：この設定ファイルの環境要件
+
+【環境要件】
+◆OS
+・Windows10 Pro(x64)
+
+◆ソフトウェア
+・Docker for Windows
+・Ubuntu 18.04 LTS
+
+◆設定ファイル一式
+
+### k8s-php-720-sampleのフォルダの中身を「C:\k8s\php-720-sample」へ配置する。
+
 ### Docker for Windowsをインストールし、設定画面でkubernetesを有効にする。
 
 ### WSLでskaffoldインストール
