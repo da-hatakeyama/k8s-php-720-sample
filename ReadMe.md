@@ -1,29 +1,29 @@
-## _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-## _/ Docker for Windows におけるLAPP環境構築
-## _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+## ***************************************
+## * Docker for Windows におけるLAPP環境構築
+## ***************************************
 
-### _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-### _/ この設定ファイルを作成したブログ記事
+### ***************************************
+### * この設定ファイルを作成したブログ記事
 
 https://www.d-a.co.jp/staff/index.php?itemid=11051
 
-### _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-### _/ ファイル構成
+### ***************************************
+### * ファイル構成
 
-php-720-sample/
-　┣1.db-disk/・・・DBの永続ボリュームを作成するyaml等
-　┣2.src-deploy-disk/・・・srcの永続ボリュームを作成するyaml等
-　┣3.db-rebuild/・・・DBのコンテナ、service、deployment等を作成するyaml等
-　┣4.php-rebuild/・・・php-fpmのコンテナ、service、deployment等を作成するyaml等
-　┣5.apache-rebuild/・・・apacheのコンテナ、service、deployment等を作成するyaml等
-　┣6.mailsv-rebuild/・・・postfixのコンテナ、service、deployment等を作成するyaml等
-　┣7.ingress/・・・ingressのyaml等
-　┣kube-db-proxy.bat・・・postgresqlのpodのDBへA5等のDBクライアントから接続出来るようにする為のポートフォワードを起動するバッチ。
-　┣kubeproxy.bat・・・kubernetesダッシュボードへアクセスする為のproxyを実行するバッチ。
-　┗ReadMe.md・・・使い方等々の説明
+php-720-sample/  
+　┣1.db-disk/・・・DBの永続ボリュームを作成するyaml等  
+　┣2.src-deploy-disk/・・・srcの永続ボリュームを作成するyaml等  
+　┣3.db-rebuild/・・・DBのコンテナ、service、deployment等を作成するyaml等  
+　┣4.php-rebuild/・・・php-fpmのコンテナ、service、deployment等を作成するyaml等  
+　┣5.apache-rebuild/・・・apacheのコンテナ、service、deployment等を作成するyaml等  
+　┣6.mailsv-rebuild/・・・postfixのコンテナ、service、deployment等を作成するyaml等  
+　┣7.ingress/・・・ingressのyaml等  
+　┣kube-db-proxy.bat・・・postgresqlのpodのDBへA5等のDBクライアントから接続出来るようにする為のポートフォワードを起動するバッチ  
+　┣kubeproxy.bat・・・kubernetesダッシュボードへアクセスする為のproxyを実行するバッチ  
+　┗ReadMe.md・・・使い方等々の説明  
 
-### _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-### _/ 前提条件：この設定ファイルの環境要件
+### ***************************************
+### * 前提条件：この設定ファイルの環境要件
 
 【環境要件】  
 ◆OS  
@@ -33,8 +33,8 @@ php-720-sample/
 ・Docker for Windows  
 ・Ubuntu 18.04 LTS  
 
-### _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-### _/ kubernetesを動かす基盤となるソフトウェアのインストール（全てUbuntu 18.04 LTSで実施）
+### ***************************************
+### * kubernetesを動かす基盤となるソフトウェアのインストール（全てUbuntu 18.04 LTSで実施）
 #### ※ 1回だけ実施すればよい。
 
 #### k8s-php-720-sampleのフォルダの中身を「C:\k8s\php-720-sample」へ配置する。
@@ -95,8 +95,8 @@ echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/a
 sudo apt-get update && apt-get install -y kubelet kubeadm kubectl kubernetes-cni  
 
 
-### _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-### _/ kubernetesでLAPP環境構築する手順
+### ***************************************
+### * kubernetesでLAPP環境構築する手順
 ##### ※ 1回だけ実施すれば良い。
 ##### kubernetesの環境を作り直したい場合は以下で作成した環境を一度削除し、
 ##### もう一度実施する事も可能。phpのpodだけ削除して作り直すことも可能だし、
@@ -215,8 +215,8 @@ kubectl apply -f 80.ingress.yaml
 #### ingressに割り振られたグローバルアドレスの確認
 kubectl get ingress  
 
-### _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
-### _/ 以下はkubernetesを操作する際によく使うコマンド
+### ***************************************
+### * 以下はkubernetesを操作する際によく使うコマンド
 
 #### namespace切り替え
 kubectl config current-context  
