@@ -9,12 +9,12 @@ spec:
   ports:
   - name: http
     port: 80
-    nodePort: 30801
+    nodePort: 30802
     targetPort: 80
     protocol: TCP
   - name: https
     port: 443
-    nodePort: 30401
+    nodePort: 30402
     targetPort: 443
     protocol: TCP
   selector:
@@ -58,4 +58,4 @@ spec:
       volumes:
       - name: disk
         persistentVolumeClaim:
-          claimName: php-src-pvc
+          claimName: php-src-sample-pvc

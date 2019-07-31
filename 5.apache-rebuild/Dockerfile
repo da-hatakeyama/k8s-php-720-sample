@@ -18,8 +18,10 @@ RUN cp /opt/rh/httpd24/root/etc/httpd/conf/httpd.conf /opt/rh/httpd24/root/etc/h
 
 RUN mkdir -p /opt/rh/httpd24/root/etc/httpd/Includes
 COPY ./Includes /opt/rh/httpd24/root/etc/httpd/Includes
-RUN mkdir -p /etc/httpd/ssl
-COPY ./ssl /etc/httpd/ssl
+
+# SSLí êMÇ∑ÇÈç€ÇÕÇ±Ç±ÇóLå¯Ç…Ç∑ÇÈ
+# RUN mkdir -p /etc/httpd/ssl
+# COPY ./ssl /etc/httpd/ssl
 
 
 RUN sed -i "s/    DirectoryIndex index.html/    DirectoryIndex index.php/" /opt/rh/httpd24/root/etc/httpd/conf/httpd.conf

@@ -40,4 +40,4 @@ spec:
       volumes:
       - name: disk
         persistentVolumeClaim:
-          claimName: php-src-pvc
+          claimName: php-src-sample-pvc
