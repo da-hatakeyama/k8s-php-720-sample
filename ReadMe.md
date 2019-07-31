@@ -223,7 +223,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/mast
 cd /mnt/c/k8s/php-720-sample/7.ingress  
 
 #### sslの鍵登録 ※HTTPSを使用する際は実施
-##### kubectl create secret tls d-a.co.jp --key ../5.apache-rebuild/ssl/example1.co.jp/svrkey-sample-empty.key --cert ../5.apache-rebuild/ssl/example1.co.jp/svrkey-sample-empty.crt
+##### kubectl create secret tls example1.co.jp --key ../5.apache-rebuild/ssl/example1.co.jp/svrkey-sample-empty.key --cert ../5.apache-rebuild/ssl/example1.co.jp/svrkey-sample-empty.crt
 
 #### Ingressの作成
 kubectl apply -f 80.ingress.yaml  
