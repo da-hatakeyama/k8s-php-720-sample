@@ -96,7 +96,7 @@ exit
 #### # kuberctlインストール
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -   
 echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list  
-sudo apt-get update && apt-get install -y kubelet kubeadm kubectl kubernetes-cni  
+sudo apt-get update && sudo apt-get install -y kubelet kubeadm kubectl kubernetes-cni  
 
 
 __**************************************************************************************__  
@@ -110,6 +110,7 @@ __******************************************************************************
 __*******************************************__  
 __*　スクリプトで実行する場合__  
 __*******************************************__  
+cd /mnt/c/k8s/php-720-sample  
 ./k8s-php-720-sample-all-build.sh  
 
 __※スクリプトで実行する場合は、以下「手動で実行する場合」は実施不要__
@@ -137,7 +138,7 @@ kubectl get namespace
 kubectl config current-context  
 ##### # 上記コマンドで表示されたコンテキスト名を、以下のコマンドset-contextの次に組み込む。  
 ##### # namespaceには、切り替えたいnamespaceを設定する。  
-kubectl config set-context docker-for-desktop --namespace=php-720-sample  
+kubectl config set-context docker-desktop --namespace=php-720-sample  
 
 #### # コンテキストの向き先確認
 kubectl config get-contexts  
@@ -241,7 +242,7 @@ __******************************************************************************
 #### # namespace切り替え
 kubectl config current-context  
 #### # 上記コマンドで表示されたコンテキスト名を、以下のコマンドに組み込む
-kubectl config set-context docker-for-desktop --namespace=php-720-sample  
+kubectl config set-context docker-desktop --namespace=php-720-sample  
 
 #### # コンテキストの向き先確認
 kubectl config get-contexts  
@@ -260,6 +261,9 @@ kubectl port-forward postgresql-0 5432:5432
 #### # kubectl proxyを実行（ダッシュボード閲覧に必要）
 kubectl proxy  
 
+#### # ダッシュボードインストール（1回だけ実施すればよい）
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml  
+
 #### # ダッシュボードへアクセス
 http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/  
 
@@ -271,6 +275,21 @@ kubectl -n kube-system describe secret default
 
 #### # 認証トークン設定（取得したTokenからkubeconfigを出力し、そのファイルを指定してサインインする方式。）
 ##### # 以下のコマンドの[TOKEN]へ取得した認証トークンを設定する。
-##### # kubectl config set-credentials docker-for-desktop --token="[TOKEN]"
+##### # kubectl config set-credentials docker-desktop --token="[TOKEN]"
 
 #### # ダッシュボードのサインインの画面で、C:\Users\[ユーザ名]\.kube\configを指定するとサインイン出来る。
+
+__**************************************************************************************__  
+__*　トラブルシューティング__  
+__**************************************************************************************__  
+
+#### # kubectl get podとして「The connection to the server localhost:6445 was refused - did you specify the right host or port?」と出た場合
+##### # Docker for Windowsの設定画面を開き、左下がKubernetes is runningとなってから再度試す。それでもダメな場合は以下を試す。
+docker ps --no-trunc | grep 'advertise-address='  
+##### # 「--secure-port=」以降のポートを確認。以下コマンドの[PORT]へ組み込んで実行
+kubectl config set-cluster docker-desktop-cluster --server=https://localhost:[PORT]  
+
+#### # kubectl get podとして「Unable to connect to the server: x509: certificate signed by unknown authority」と出た場合
+mv ~/.kube/config ~/.kube/config_back  
+ln -s /mnt/c/Users/da-hatakeyama/.kube/config ~/.kube/config  
+

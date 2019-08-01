@@ -4,7 +4,7 @@
 kubectl create namespace php-720-sample
 
 #### namespace切り替え
-kubectl config set-context docker-for-desktop --namespace=php-720-sample
+kubectl config set-context docker-desktop --namespace=php-720-sample
 
 #### ＜DBのpvc構築＞
 cd /mnt/c/k8s/php-720-sample/1.db-disk

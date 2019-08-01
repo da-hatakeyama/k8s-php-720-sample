@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #### namespace切り替え
-kubectl config set-context docker-for-desktop --namespace=php-720-sample
+kubectl config set-context docker-desktop --namespace=php-720-sample
 
 #### ＜postgreSQL削除＞
 ##### postgreSQLイメージビルド
