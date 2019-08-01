@@ -19,7 +19,7 @@ php-720-sample/
 　┣6.mailsv-rebuild/・・・postfixのコンテナ、service、deployment等を作成するyaml等  
 　┣7.ingress/・・・ingressのyaml等  
 　┣k8s-php-720-sample-all-build.sh・・・php-720-sampleのk8sコンテナを一斉に作成するシェル  
-　┣k8s-php-720-sample-all-remove.sh・・・php-720-sampleのk8sコンテナを一斉に削除するシェル  
+　┣k8s-php-720-sample-all-delete.sh・・・php-720-sampleのk8sコンテナを一斉に削除するシェル  
 　┣kube-db-proxy.bat・・・podのDBへDBクライアント（A5等）から接続する為のポートフォワード起動  
 　┣kubeproxy.bat・・・kubernetesダッシュボードへアクセスする為のproxyを実行するバッチ  
 　┗ReadMe.md・・・使い方等々の説明  

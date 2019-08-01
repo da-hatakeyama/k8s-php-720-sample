@@ -5,3 +5,6 @@ COPY ./sqls/*.sql /docker-entrypoint-initdb.d/
 COPY ./creat-volume.sh /usr/local/bin/
 RUN chmod 700 /usr/local/bin/creat-volume.sh
 RUN chown root:root /usr/local/bin/creat-volume.sh
+
+RUN apt-get update
+RUN apt-get install -y less
