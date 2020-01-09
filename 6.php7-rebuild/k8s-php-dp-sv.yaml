@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-fpm-service
+  labels:
+    app: php-fpm
+spec:
+  selector:
+    app: php-fpm
+  ports:
+    - protocol: TCP
+      port: 9000
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: php-fpm
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: php-fpm
+    spec:
+      containers:
+      - name: php-fpm
+        image: php-gke-php:latest
+#        env:
+#        - name: LC_CTYPE
+#          value: ja_JP.utf8
+        command:
+          - sh
+          - "-c"
+          - |
+            ln -s /mnt/src/example1.co.jp /home/example1.co.jp && \
+            ln -s /mnt/src/example2.co.jp /home/example2.co.jp && \
+            /usr/local/bin/dns-regist.sh && \
+            php-fpm
+        ports:
+        - containerPort: 9000
+        volumeMounts:
+        - name: disk
+          mountPath: "/mnt/src"
+        securityContext:
+          privileged: true
+      volumes:
+      - name: disk
+        persistentVolumeClaim:
+          claimName: php-src-sample-pvc

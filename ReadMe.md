@@ -13,13 +13,16 @@ __******************************************************************************
 php-720-sample/  
 　┣1.db-disk/・・・DBの永続ボリュームを作成するyaml等  
 　┣2.src-deploy-disk/・・・srcの永続ボリュームを作成するyaml等  
-　┣3.db-rebuild/・・・DBのコンテナ、service、deployment等を作成するyaml等  
-　┣4.php-rebuild/・・・php-fpmのコンテナ、service、deployment等を作成するyaml等  
-　┣5.apache-rebuild/・・・apacheのコンテナ、service、deployment等を作成するyaml等  
-　┣6.mailsv-rebuild/・・・postfixのコンテナ、service、deployment等を作成するyaml等  
-　┣7.ingress/・・・ingressのyaml等  
-　┣k8s-php-720-sample-all-build.sh・・・php-720-sampleのk8sコンテナを一斉に作成するシェル  
-　┣k8s-php-720-sample-all-delete.sh・・・php-720-sampleのk8sコンテナを一斉に削除するシェル  
+　┣3.psql-rebuild/・・・postgreSQLのコンテナ、service、deployment等を作成するyaml等  
+　┣4.mysql-rebuild/・・・MySQLのコンテナ、service、deployment等を作成するyaml等  
+　┣5.dns/・・・DNS(bind)のコンテナ、service、deployment等を作成するyaml等  
+　┣6.php7-rebuild/・・・php-fpm(php7)のコンテナ、service、deployment等を作成するyaml等  
+　┣7.php5-rebuild/・・・php-fpm(php5)のコンテナ、service、deployment等を作成するyaml等  
+　┣8.apache-rebuild/・・・apacheのコンテナ、service、deployment等を作成するyaml等  
+　┣9.mailsv-rebuild/・・・postfixのコンテナ、service、deployment等を作成するyaml等  
+　┣10.ingress/・・・ingressのyaml等  
+　┣k8s-php-720-all-build.sh・・・php-720-sampleのk8sコンテナを一斉に作成するシェル  
+　┣k8s-php-720-all-remove.sh・・・php-720-sampleのk8sコンテナを一斉に削除するシェル  
 　┣kube-db-proxy.bat・・・podのDBへDBクライアント（A5等）から接続する為のポートフォワード起動  
 　┣kubeproxy.bat・・・kubernetesダッシュボードへアクセスする為のproxyを実行するバッチ  
 　┗ReadMe.md・・・使い方等々の説明  
@@ -45,9 +48,19 @@ __******************************************************************************
 
 #### # Docker for Windowsをインストールし、設定画面でkubernetesを有効にする。
 
+以下をチェックON  
+・Enable Kubernetes  
+・Deploy Docker Stack to Kubernetes by default  
+・Show system containers  
+
+#### # Docker for Windowsの設定で、WSLから使えるようにする。
+Setting画面からGeneralタブを開き、Expose daemon on tcp://localhost:2375 without TLSにチェックを入れる。
+
+#### # Docker for Windowsの設定で、Shared DrivesのCにチェックを入れる
+
 #### # WSLでskaffoldインストール
 curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64  
-chmod +x skaffold  
+sudo chmod +x skaffold  
 sudo mv skaffold /usr/local/bin  
 
 #### # WSL(Bash on Windows)でDockerを使用する
@@ -56,47 +69,51 @@ sudo mv skaffold /usr/local/bin
 ##### # https://medium.com/@XanderGrzy/developing-for-docker-kubernetes-with-windows-wsl-9d6814759e9f
 ##### # https://www.myzkstr.com/archives/888
 
-#### # Docker for Windowsの設定で、WSLから使えるようにする。
-Setting画面からGeneralタブを開き、Expose daemon on tcp://localhost:2375 without TLSにチェックを入れる。
-
-#### # 事前パッケージインストール
-sudo apt-get install \  
-    apt-transport-https  ca-certificates curl \  
-    software-properties-common  
-
-#### # Docker公式のGPG鍵を追加,確認
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -  
-sudo apt-key fingerprint 0EBFCD88  
-
-#### # Dockerレポジトリを追加 (Stableチャンネルのレポジトリ)
-sudo add-apt-repository \  
-   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \  
-   $(lsb_release -cs) \  
-   stable"  
-
 #### # Dockerインストール (Communityエディション)
-sudo apt-get update  
-sudo apt-get install docker-ce  
-
-#### # dockerグループへユーザを追加
-sudo gpasswd -a [ユーザ名] docker  
-
-#### # グループの追加ができたことを確認
-id [ユーザ名]  
+sudo apt install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic test"
+sudo apt update
+sudo apt install docker-ce
 
 #### # dockerホストの登録
-echo "export DOCKER_HOST=localhost:2375" >> ~/.bash_profile  
-
-#### # Dockerサービス起動
-sudo cgroupfs-mount && sudo service docker start  
-
-#### # 一回ログアウトして再ログインする(Windowsも再起動する)
-exit  
+echo "export DOCKER_HOST=tcp://127.0.0.1:2375" >> ~/.bash_profile  
+source ~/.bash_profile  
 
 #### # kuberctlインストール
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -   
 echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list  
 sudo apt-get update && sudo apt-get install -y kubelet kubeadm kubectl kubernetes-cni  
+
+#### # WSLのkuberctlの接続先を、Docker for WIndowsのkubernetes環境へ向ける
+
+docker ps --no-trunc | grep 'advertise-address='  
+##### # 上記コマンドの実行結果で、「--secure-port=」以降のポートを確認。以下コマンドの[PORT]へ組み込んで実行
+kubectl config set-cluster docker-for-desktop-cluster --server=https://localhost:[PORT]  
+
+mv ~/.kube/config ~/.kube/config_back  
+ln -s /mnt/c/Users/<ユーザ名>/.kube/config ~/.kube/config  
+
+#### # ダッシュボードインストール（1回だけ実施すればよい）
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml  
+
+#### # kubectl proxyを実行（ダッシュボード閲覧に必要）
+kubectl proxy  
+
+#### # ダッシュボードへアクセス
+http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/  
+
+#### # 権限取得
+kubectl -n kube-system get secret  
+
+#### # 認証トークン取得（取得したTokenをサインイン画面のトークンで設定してサインインする方式）
+kubectl -n kube-system describe secret default  
+
+#### # 認証トークン設定（取得したTokenからkubeconfigを出力し、そのファイルを指定してサインインする方式。）
+##### # 以下のコマンドの[TOKEN]へ取得した認証トークンを設定する。
+##### # kubectl config set-credentials docker-for-desktop --token="[TOKEN]"
+
+#### # ダッシュボードのサインインの画面で、C:\Users\[ユーザ名]\.kube\configを指定するとサインイン出来る。
 
 
 __**************************************************************************************__  
@@ -138,7 +155,7 @@ kubectl get namespace
 kubectl config current-context  
 ##### # 上記コマンドで表示されたコンテキスト名を、以下のコマンドset-contextの次に組み込む。  
 ##### # namespaceには、切り替えたいnamespaceを設定する。  
-kubectl config set-context docker-desktop --namespace=php-720-sample  
+kubectl config set-context docker-for-desktop --namespace=php-720-sample  
 
 #### # コンテキストの向き先確認
 kubectl config get-contexts  
@@ -198,22 +215,36 @@ docker images
 
 #### ＜postgreSQL構築＞
 ##### # postgreSQLイメージビルド
-cd /mnt/c/k8s/php-720-sample/3.db-rebuild  
+cd /mnt/c/k8s/php-720-sample/3.psql-rebuild  
+./skaffold_run.sh  
+
+#### ＜MySQL構築＞
+##### # MySQLイメージビルド
+cd /mnt/c/k8s/php-720-sample/4.mysql-rebuild  
+./skaffold_run.sh  
+
+#### ＜DNS(bind)構築＞
+##### # DNS(bind)イメージビルド
+cd /mnt/c/k8s/php-720-sample/5.dns  
 ./skaffold_run.sh  
 
 #### ＜php構築＞
-##### # phpイメージビルド
-cd /mnt/c/k8s/php-720-sample/4.php-rebuild  
+##### # php7イメージビルド
+cd /mnt/c/k8s/php-720-sample/6.php7-rebuild
+./skaffold_run.sh  
+
+##### # php5イメージビルド
+cd /mnt/c/k8s/php-720-sample/7.php5-rebuild
 ./skaffold_run.sh  
 
 #### ＜apache構築＞
 ##### # apacheイメージビルド
-cd /mnt/c/k8s/php-720-sample/5.apache-rebuild  
+cd /mnt/c/k8s/php-720-sample/8.apache-rebuild
 ./skaffold_run.sh  
 
 #### ＜mailsv構築＞
 ##### # mailsvイメージビルド
-cd /mnt/c/k8s/php-720-sample/6.mailsv-rebuild  
+cd /mnt/c/k8s/php-720-sample/9.mailsv-rebuild  
 kubectl apply -f ./k8s-mailsv-sv.yaml  
 
 #### ＜ingressを構築＞
@@ -221,10 +252,10 @@ kubectl apply -f ./k8s-mailsv-sv.yaml
 ##### # 参考サイト：https://kubernetes.github.io/ingress-nginx/deploy/
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml  
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/cloud-generic.yaml  
-cd /mnt/c/k8s/php-720-sample/7.ingress  
+cd /mnt/c/k8s/php-720-sample/10.ingress  
 
 #### sslの鍵登録 ※HTTPSを使用する際は実施
-##### # kubectl create secret tls example1.co.jp --key ../5.apache-rebuild/ssl/example1.co.jp/svrkey-sample-empty.key --cert ../5.apache-rebuild/ssl/example1.co.jp/svrkey-sample-empty.crt
+##### # kubectl create secret tls example1.co.jp --key ../8.apache-rebuild/ssl/example1.co.jp/svrkey-sample-empty.key --cert ../8.apache-rebuild/ssl/example1.co.jp/svrkey-sample-empty.crt
 
 #### # Ingressの作成
 kubectl apply -f 80.ingress.yaml  
@@ -242,7 +273,7 @@ __******************************************************************************
 #### # namespace切り替え
 kubectl config current-context  
 #### # 上記コマンドで表示されたコンテキスト名を、以下のコマンドに組み込む
-kubectl config set-context docker-desktop --namespace=php-720-sample  
+kubectl config set-context docker-for-desktop --namespace=php-720-sample  
 
 #### # コンテキストの向き先確認
 kubectl config get-contexts  
@@ -253,31 +284,18 @@ kubectl get pod
 #### # init-data.shの実行
 ##### # init-data.shはpod起動時に自動で実行される。pod稼働中に必要になった場合に以下を実行する。
 kubectl exec -it [podの名称] /bin/bash  
+kubectl exec -it php-fpm-67564bbb5-st42c /bin/bash  
+kubectl exec -it apache-c8958f876-tdzbw /bin/bash  
+kubectl exec -it postgresql-0 /bin/bash  
+kubectl exec -it postfix-77d69ff664-5drvf /bin/bash  
+kubectl exec -it dns-6b8bb6b759-rkn25 /bin/bash 
+kubectl exec -it mysql-0 /bin/bash 
+kubectl exec -it php5-fpm-7d56f8dc44-rr5jw /bin/bash  
 
 
 #### # ポートフォワード（postgreSQLへの接続時等に使用）
 kubectl port-forward postgresql-0 5432:5432  
 
-#### # kubectl proxyを実行（ダッシュボード閲覧に必要）
-kubectl proxy  
-
-#### # ダッシュボードインストール（1回だけ実施すればよい）
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml  
-
-#### # ダッシュボードへアクセス
-http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/  
-
-#### # 権限取得
-kubectl -n kube-system get secret  
-
-#### # 認証トークン取得（取得したTokenをサインイン画面のトークンで設定してサインインする方式）
-kubectl -n kube-system describe secret default  
-
-#### # 認証トークン設定（取得したTokenからkubeconfigを出力し、そのファイルを指定してサインインする方式。）
-##### # 以下のコマンドの[TOKEN]へ取得した認証トークンを設定する。
-##### # kubectl config set-credentials docker-desktop --token="[TOKEN]"
-
-#### # ダッシュボードのサインインの画面で、C:\Users\[ユーザ名]\.kube\configを指定するとサインイン出来る。
 
 __**************************************************************************************__  
 __*　トラブルシューティング__  
@@ -287,9 +305,9 @@ __******************************************************************************
 ##### # Docker for Windowsの設定画面を開き、左下がKubernetes is runningとなってから再度試す。それでもダメな場合は以下を試す。
 docker ps --no-trunc | grep 'advertise-address='  
 ##### # 「--secure-port=」以降のポートを確認。以下コマンドの[PORT]へ組み込んで実行
-kubectl config set-cluster docker-desktop-cluster --server=https://localhost:[PORT]  
+kubectl config set-cluster docker-for-desktop-cluster --server=https://localhost:[PORT]  
 
 #### # kubectl get podとして「Unable to connect to the server: x509: certificate signed by unknown authority」と出た場合
 mv ~/.kube/config ~/.kube/config_back  
-ln -s /mnt/c/Users/da-hatakeyama/.kube/config ~/.kube/config  
+ln -s /mnt/c/Users/<ユーザ名>/.kube/config ~/.kube/config  
 

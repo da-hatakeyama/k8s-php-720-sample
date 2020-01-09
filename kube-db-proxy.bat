@@ -1,6 +1,6 @@
 @echo off
 
-kubectl config set-context docker-for-desktop --namespace=php-720-sample
-kubectl port-forward postgresql-0 5432:5432
+START .\kube-mysql-proxy.bat
+START .\kube-psql-proxy.bat
 
 @echo on
