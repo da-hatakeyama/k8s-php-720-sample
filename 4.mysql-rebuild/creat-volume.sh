@@ -12,4 +12,4 @@ mount -t ext4 -o loop /mnt/php-apache-psql-data/php-apache-mysql-data.img /var/l
 if [[ $INIT ]]; then
     rm -rf /var/lib/mysql/*
 fi
-/usr/local/bin/docker-entrypoint.sh mysqld --datadir /docker-entrypoint-initdb.d --user root
+/usr/local/bin/docker-entrypoint.sh mysqld --datadir /var/lib/mysql --user root
